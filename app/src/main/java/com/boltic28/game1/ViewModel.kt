@@ -14,10 +14,9 @@ import kotlin.random.Random
 
 class ViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val traffic = mutableListOf<Car>()
+    private var traffic = mutableListOf<Car>()
 
     private val lineCenterPositions = mutableListOf<Position>()
-    private var currentLine = 0
 
     private lateinit var car: Car
 
@@ -53,18 +52,18 @@ class ViewModel(app: Application) : AndroidViewModel(app) {
     }
 
 
-    fun prepareFrame(): List<Car> {
-        return listOf(car)
-        //todo move each car on the road
-        //            trafficCar.slowDownIfOtherCarInFrontOf()
-//            //trafficCar.brokeDownIfContactWithOtherCar()
-//            trafficCar.position.y += (car.speed - trafficCar.speed)
-//            if (trafficCar.position.y < -trafficCar.body.height || trafficCar.position.y > height) {
-//                otherCars.remove(trafficCar)
-//            } else {
-//                canvas.drawBitmap(trafficCar.carImage, trafficCar.position.x, trafficCar.position.y, paint)
-//            }
-//        }
+    fun nextFrame(): List<Car> {
+        val _traffic = traffic.toTypedArray()
+        _traffic.forEach { trafficCar ->
+            trafficCar.position.y += (car.speed - trafficCar.speed)
+            if (trafficCar.position.y < -trafficCar.body.height || trafficCar.position.y > viewHeight) {
+                traffic.remove(trafficCar)
+            }else{
+                trafficCar.slowDownIfOtherCarInFrontOf()
+            }
+        }
+
+        return listOf(*traffic.toTypedArray(), car)
     }
 
     fun turnLeft() {
@@ -95,41 +94,7 @@ class ViewModel(app: Application) : AndroidViewModel(app) {
         if (car.speed > 0f) car.speed -= ACCELERATE_STEP
     }
 
-    private fun Car.slowDownIfOtherCarInFrontOf(): Boolean {
-        traffic.forEach { otherCar ->
-            if (this.position.y != otherCar.position.y && this sees otherCar) {
-                if (speed >= otherCar.speed) {
-                    speed -= ACCELERATE_STEP
-                    otherCar.speed += ACCELERATE_STEP
-                } else {
-                    speed += ACCELERATE_STEP
-                }
-            }
-            return true
-        }
-        return false
-    }
-
-    private fun Car.brokeDownIfContactWithOtherCar(): Boolean {
-        traffic.forEach { otherCar ->
-            if (this.position.y != otherCar.position.y && this contact otherCar) {
-                speed = 0f
-                otherCar.speed = 0f
-            }
-            return true
-        }
-        return false
-    }
-
-    private infix fun Car.contact(car: Car) =
-        (this.position.x == car.position.x) && (abs(this.position.y - car.position.y) < MIN_DISTANCE)
-
-
-    private infix fun Car.sees(car: Car): Boolean =
-        (this.position.x == car.position.x) && (abs(this.position.y - car.position.y) < MIN_DISTANCE)
-
-
-    fun addCar() {
+    fun increaseTraffic() {
         val localSpeed = getRandomSpeed()
         val line = getRandomLine()
         traffic.add(
@@ -156,7 +121,7 @@ class ViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun getRandomLine(): Int {
         var line = Random.nextInt(LINES_COUNT)
-        while (line == currentLine) line = Random.nextInt(LINES_COUNT)
+        while (line == car.line) line = Random.nextInt(LINES_COUNT)
         return line
     }
 
@@ -195,4 +160,45 @@ class ViewModel(app: Application) : AndroidViewModel(app) {
                 false
             }
         }
+
+    private fun Car.slowDownIfOtherCarInFrontOf(): Boolean {
+        traffic.forEach { otherCar ->
+            if (this notEqual otherCar) println("->> check car ${position.y} other ${otherCar.position.y}")
+            if (this notEqual otherCar && this haveToChangeDistanceTo otherCar) {
+                println("->> has car near to")
+                if (speed >= otherCar.speed) {
+                    speed -= ACCELERATE_STEP
+                } else {
+                    speed += ACCELERATE_STEP
+                }
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun Car.brokeDownIfContactWithOtherCar(): Boolean {
+        traffic.forEach { otherCar ->
+            if (this notEqual otherCar && this contact otherCar) {
+                speed = 0f
+                otherCar.speed = 0f
+            }
+            return true
+        }
+        return false
+    }
+
+    private infix fun Car.haveToChangeDistanceTo(car: Car): Boolean =
+        this inTheSameLineWith car && this tooCloseTo car
+
+    private infix fun Car.notEqual(car: Car): Boolean =
+        this.position.y != car.position.y && this.position.x != car.position.x
+
+    private infix fun Car.contact(car: Car): Boolean =
+        (this.position.x == car.position.x) && (abs(this.position.y - car.position.y) < MIN_DISTANCE)
+
+    private infix fun Car.inTheSameLineWith(car: Car): Boolean = this.line == car.line
+
+    private infix fun Car.tooCloseTo(car: Car): Boolean =
+        (abs(this.position.y - car.position.y) < MIN_DISTANCE)
 }

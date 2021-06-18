@@ -19,7 +19,7 @@ const val DISTANCE_TO_CAR = 40f
 const val CAR_APPEARANCE_TIME = 2000L
 const val MAX_SPEED_OTHER = LINE_LENGTH - ACCELERATE_STEP * 4
 const val MIN_DISTANCE = 500f
-const val SPEED_DIFFERENCE = 8 // in Accelerate steps
+const val SPEED_DIFFERENCE = 4 // in Accelerate steps
 
 // board
 const val TEXT_SIZE = 26.0f

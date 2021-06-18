@@ -43,13 +43,8 @@ class PlayWindow : View {
     }
 
     private fun drawTraffic(canvas: Canvas) {
-        traffic.onEach { trafficCar ->
-            canvas.drawBitmap(
-                trafficCar.carImage,
-                trafficCar.position.x,
-                trafficCar.position.y,
-                paint
-            )
+        traffic.toTypedArray().onEach { car ->
+            canvas.drawBitmap(car.carImage, car.position.x, car.position.y, paint)
         }
     }
 

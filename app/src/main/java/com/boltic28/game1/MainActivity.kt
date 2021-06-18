@@ -37,15 +37,15 @@ class MainActivity : AppCompatActivity() {
             while (true) {
                 delay(PAUSE_BETWEEN_DRAWING)
                 binding.speedometer.text =
-                    String.format("%s km/h", game.updateState(viewModel.prepareFrame()).toString())
+                    String.format("%s km/h", game.updateState(viewModel.nextFrame()).toString())
             }
         }
 
-//        CoroutineScope(Dispatchers.Default).launch {
-//            while (true) {
-//                delay(CAR_APPEARANCE_TIME)
-//                viewModel.addCar()
-//            }
-//        }
+        CoroutineScope(Dispatchers.Default).launch {
+            while (true) {
+                delay(CAR_APPEARANCE_TIME)
+                viewModel.increaseTraffic()
+            }
+        }
     }
 }
